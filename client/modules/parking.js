@@ -2,33 +2,61 @@ export default class ParkingControl {
     constructor(name, types) {
         this.name = name;
         this.cars = [];
-        this._initCarTypes(types);
+        this._initParkingSlots(types);
     }
 
-    _initCarTypes(types) {
-        this.carSeats = {};
-        for (let type in types) {
-            this.carSeats[type] = Number(types[type]) || 0;
+    _initParkingSlots(types) {
+        this.parkingSlots = [];
+        this.carsTypes = [];
+        for (let slot in types) {
+            this.carsTypes.push(slot);
+            const slotsCount = Number(types[slot]) || 0;
+            for (let i = 0; i < slotsCount; i++) {
+                this.parkingSlots.push({type: slot, id: Math.random().toFixed(6).toString().slice(2), available: true})
+            }
         }
     }
 
     getCarsTypes() {
-        return Object.keys(this.carSeats);
+        return this.carsTypes;
     }
 
     addCar({id, type}) {
-        const availableSeats = this.carSeats[type];
+        const slot = this._checkForFreeSlot(type);
 
-        if (!availableSeats) {
+        if (!slot) {
             alert(`There no more free seats for ${type} cars`);
             return false;
         }
 
-        this.cars.push({id, type});
-        this.carSeats[type] = availableSeats - 1;
+        this.cars.push({id, type, parkingSlotId: slot.id});
+        this.parkingSlots = this.parkingSlots.map((s) => {
+            if (s.id === slot.id)
+                s.available = false;
+
+            return s;
+        });
+
+        return slot.id;
     }
 
     availableSeats(type) {
-        return type ? this.carSeats[type] : this.carSeats;
+        return type ? this.parkingSlots[type] : this.parkingSlots;
+    }
+
+    _checkForFreeSlot(type) {
+        return this.parkingSlots.filter((slot) => {
+            if (slot.available) {
+                if (type === 'sedan') {
+                    return slot.type === 'sedan' || slot.type === 'truck';
+                } else if (type === 'truck') {
+                    return slot.type === 'truck'
+                } else {
+                    return true;
+                }
+            }
+
+            return false;
+        })[0];
     }
 };

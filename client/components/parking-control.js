@@ -30,14 +30,17 @@ export default class ParkingControlView extends React.Component {
 
         const cars = this.state.cars.slice();
         const newCar = new Car({type});
-        console.log('added car with type', newCar.getCarType());
-        this.state.parking.addCar({id: newCar.id, type: newCar.type});
-        cars.push(newCar);
-        this.setState({cars});
+        const parkingSlotId = this.state.parking.addCar({id: newCar.id, type: newCar.type});
+
+        if (parkingSlotId) {
+            newCar.setParkingSlot(parkingSlotId);
+            cars.push(newCar);
+            this.setState({cars});
+        }
+
     }
 
     render() {
-        console.log(this.state.parking.availableSeats());
         const carTypes = this.state.parking.getCarsTypes();
 
 
@@ -50,7 +53,7 @@ export default class ParkingControlView extends React.Component {
                             <span key={index}>
                                 <Button onClick={(e) => this.handleAddCarClick(event, type)}>Add {type}</Button>
                             </span>
-                            )
+                        )
                     })}
                 </div>
             </div>
