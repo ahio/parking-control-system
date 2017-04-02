@@ -7,18 +7,20 @@ export default class ParkingControl {
 
     _initParkingSlots(types) {
         this.parkingSlots = [];
-        this.carsTypes = [];
+        this.slotTypes = {};
         for (let slot in types) {
-            this.carsTypes.push(slot);
+            this.slotTypes[slot] = [];
             const slotsCount = Number(types[slot]) || 0;
             for (let i = 0; i < slotsCount; i++) {
-                this.parkingSlots.push({type: slot, id: Math.random().toFixed(6).toString().slice(2), available: true})
+                const id = Math.random().toFixed(6).toString().slice(2);
+                this.parkingSlots.push({type: slot, id, available: true});
+                this.slotTypes[slot].push(id);
             }
         }
     }
 
-    getCarsTypes() {
-        return this.carsTypes;
+    getSlotTypes() {
+        return Object.keys(this.slotTypes);
     }
 
     addCar({id, type}) {
@@ -31,8 +33,12 @@ export default class ParkingControl {
 
         this.cars.push({id, type, parkingSlotId: slot.id});
         this.parkingSlots = this.parkingSlots.map((s) => {
-            if (s.id === slot.id)
+            if (s.id === slot.id) {
                 s.available = false;
+
+                const slotIdIndex = this.slotTypes[type].indexOf(slot.id);
+                this.slotTypes[type].splice(slotIdIndex, 1);
+            }
 
             return s;
         });
@@ -46,19 +52,12 @@ export default class ParkingControl {
     }
 
     _checkForFreeSlot(type) {
-        return this.parkingSlots.filter((slot) => {
-            if (slot.available) {
-                if (type === 'sedan') {
-                    return slot.type === 'sedan' || slot.type === 'truck';
-                } else if (type === 'truck') {
-                    return slot.type === 'truck'
-                } else {
-                    return true;
-                }
-            }
+        return this._checkSlotForType(type) || type === 'sedan' && this._checkSlotForType('truck') ||
+            type === 'handicapped' && (this._checkSlotForType('sedan') || this._checkSlotForType('truck'));
+    }
 
-            return false;
-        })[0];
+    _checkSlotForType(type) {
+        return this.parkingSlots.filter((slot) => slot.available && type === slot.type)[0];
     }
 
     _updateAvailableSlots() {

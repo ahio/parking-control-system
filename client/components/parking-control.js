@@ -41,7 +41,7 @@ export default class ParkingControlView extends React.Component {
     }
 
     render() {
-        const carTypes = this.state.parking.getCarsTypes();
+        const carTypes = this.state.parking.getSlotTypes();
 
 
         return (
